@@ -38,7 +38,7 @@ struct ContentView: View {
                         .focused($isSearchFocused)
                     
                     Button(action: {
-                        (NSApp.delegate as? AppDelegate)?.openSettings()
+                        AppDelegate.shared?.openSettings()
                     }) {
                         Image(systemName: "gearshape")
                             .foregroundStyle(.secondary)
@@ -250,12 +250,92 @@ struct DetailView: View {
                         .padding()
                         
                     } else {
-                        // Text
-                        Text(item.content)
-                            .font(.system(.body, design: .monospaced))
-                            .textSelection(.enabled)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        // Text & OGP
+                        VStack(alignment: .leading, spacing: 16) {
+                            
+                            // OGP Section
+                            if item.isURL {
+                                if item.isLoadingOGP {
+                                    HStack {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                        Text("Fetching link details...")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding()
+                                    .background(Color.primary.opacity(0.05))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal)
+                                    .padding(.top)
+                                } else if item.ogTitle != nil || item.ogDescription != nil || item.ogImagePath != nil {
+                                    // OGP Card (Show existing OGP data)
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        if let nsImage = clipboardManager.ogImage(for: item) {
+                                            Image(nsImage: nsImage)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(height: 150)
+                                                .clipped()
+                                        }
+                                        
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            if let title = item.ogTitle {
+                                                Text(title)
+                                                    .font(.headline)
+                                                    .lineLimit(2)
+                                                    .foregroundStyle(.primary)
+                                            }
+                                            
+                                            if let desc = item.ogDescription {
+                                                Text(desc)
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                                    .lineLimit(3)
+                                            }
+                                            
+                                            Text(item.content)
+                                                .font(.caption2)
+                                                .foregroundStyle(.tertiary)
+                                                .lineLimit(1)
+                                        }
+                                        .padding(12)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background(Color.primary.opacity(0.05))
+                                    }
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                    )
+                                    .padding(.horizontal)
+                                    .padding(.top)
+                                } else {
+                                    // URL but no OGP found
+                                    HStack {
+                                        Image(systemName: "link.badge.plus")
+                                            .foregroundStyle(.secondary)
+                                        Text("No preview available for this link")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding()
+                                    .background(Color.primary.opacity(0.05))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal)
+                                    .padding(.top)
+                                }
+                            }
+                            
+                            // Raw Text content
+                            Text(item.content)
+                                .font(.system(.body, design: .monospaced))
+                                .textSelection(.enabled)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                 }
             }
@@ -347,7 +427,11 @@ struct ClipboardItemRow: View {
     
     var previewText: String {
         switch item.type {
-        case .text: return item.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .text:
+            if let title = item.ogTitle, !title.isEmpty {
+                return title
+            }
+            return item.content.trimmingCharacters(in: .whitespacesAndNewlines)
         case .image: return "Image Capture"
         case .file: return URL(fileURLWithPath: item.content).lastPathComponent
         }
@@ -355,7 +439,11 @@ struct ClipboardItemRow: View {
     
     var iconName: String {
         switch item.type {
-        case .text: return "text.alignleft"
+        case .text:
+            if item.isURL {
+                return "link"
+            }
+            return "text.alignleft"
         case .image: return "photo"
         case .file: return "paperclip"
         }

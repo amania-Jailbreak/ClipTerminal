@@ -1,0 +1,41 @@
+{
+  "" : {
+    "const-values" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary.swiftconstvalues",
+    "dependencies" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary.d",
+    "diagnostics" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary.dia",
+    "emit-module-dependencies" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary-emit-module.dia",
+    "pch" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminal-primary.swiftdeps"
+  },
+  "/Volumes/NAS/Programs/ClipTerminal/ClipTerminal/ClipTerminalApp.swift" : {
+    "index-unit-output-path" : "/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminalApp.o",
+    "llvm-bc" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminalApp.bc",
+    "object" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipTerminalApp.o"
+  },
+  "/Volumes/NAS/Programs/ClipTerminal/ClipTerminal/ClipboardManager.swift" : {
+    "index-unit-output-path" : "/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipboardManager.o",
+    "llvm-bc" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipboardManager.bc",
+    "object" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ClipboardManager.o"
+  },
+  "/Volumes/NAS/Programs/ClipTerminal/ClipTerminal/ContentView.swift" : {
+    "index-unit-output-path" : "/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/ContentView.o"
+  },
+  "/Volumes/NAS/Programs/ClipTerminal/ClipTerminal/GlobalHotKey.swift" : {
+    "index-unit-output-path" : "/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/GlobalHotKey.o",
+    "llvm-bc" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/GlobalHotKey.bc",
+    "object" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/GlobalHotKey.o"
+  },
+  "/Volumes/NAS/Programs/ClipTerminal/ClipTerminal/SettingsView.swift" : {
+    "index-unit-output-path" : "/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/SettingsView.o"
+  },
+  "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Volumes/NAS/Programs/ClipTerminal/build/Build/Intermediates.noindex/ClipTerminal.build/Release/ClipTerminal.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

@@ -13,6 +13,8 @@ struct ClipTerminalApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    static private(set) var shared: AppDelegate?
+    
     var statusItem: NSStatusItem!
     var window: NSPanel!
     var settingsWindow: NSWindow?
@@ -20,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var hotKey: GlobalHotKey?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AppDelegate.shared = self
         // Setup Menu Bar Item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
@@ -95,8 +98,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             settingsWindow?.title = "Settings"
             settingsWindow?.contentView = NSHostingView(rootView: settingsView)
             settingsWindow?.isReleasedWhenClosed = false
+            settingsWindow?.standardWindowButton(.zoomButton)?.isEnabled = false
         }
+        
+        // Hide the main clipboard window first
+        window.orderOut(nil)
+        
         settingsWindow?.makeKeyAndOrderFront(nil)
+        settingsWindow?.orderFrontRegardless()
         NSApp.activate(ignoringOtherApps: true)
     }
     
