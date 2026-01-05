@@ -60,3 +60,7 @@
 ---
 
 _2026 年 1 月 5 日 Gemini Agent 作成_
+
+### LICENSE
+
+<a href="https://amania.jp">ClipTerminal</a> © 2025 by <a href="https://amania.jp/about">amania</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
