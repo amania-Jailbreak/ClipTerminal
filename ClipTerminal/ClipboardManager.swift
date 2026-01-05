@@ -19,9 +19,18 @@ struct ClipboardItem: Identifiable, Codable, Equatable, Hashable {
     var fileSize: Int64?
     var width: CGFloat?
     var height: CGFloat?
+    
+    // OGP Metadata
+    var ogTitle: String?
+    var ogDescription: String?
+    var ogImagePath: String?
+    
+    var isURL: Bool = false
+    var isLoadingOGP: Bool = false
 }
 
 class ClipboardManager: ObservableObject {
+// ... (omitting some middle part for brevity in replacement, but I must match exactly)
     @Published var history: [ClipboardItem] = []
     private var lastChangeCount: Int = 0
     private var timer: Timer?
@@ -102,14 +111,124 @@ class ClipboardManager: ObservableObject {
         
         // 3. Check for String (Text)
         if let str = pasteboard.string(forType: .string) {
-            let item = ClipboardItem(id: UUID(), date: Date(), type: .text, content: str, imagePath: nil)
-            insertItem(item)
+            let trimmedStr = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            var item = ClipboardItem(id: UUID(), date: Date(), type: .text, content: str, imagePath: nil)
+            
+            // Robust URL detection
+            if let url = URL(string: trimmedStr), 
+               let scheme = url.scheme?.lowercased(), 
+               ["http", "https"].contains(scheme),
+               url.host != nil {
+                item.isURL = true
+                item.isLoadingOGP = true
+                insertItem(item)
+                fetchOGP(for: item, url: url)
+            } else {
+                insertItem(item)
+            }
         }
     }
     
+    private func fetchOGP(for item: ClipboardItem, url: URL) {
+        print("Fetching OGP for: \(url)")
+        
+        Task {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 8.0 // 8 second timeout for the page
+            request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15", forHTTPHeaderField: "User-Agent")
+            
+            do {
+                let (data, _) = try await URLSession.shared.data(for: request)
+                guard let html = String(data: data, encoding: .utf8) else { return }
+                
+                let title = self.extractMetaContent(html: html, property: "og:title")
+                let description = self.extractMetaContent(html: html, property: "og:description")
+                let imageURLString = self.extractMetaContent(html: html, property: "og:image")
+                
+                var localImageFilename: String?
+                if let imageURLString = imageURLString, let imageURL = URL(string: imageURLString) {
+                    localImageFilename = await downloadOGPImage(url: imageURL, itemId: item.id)
+                }
+                
+                await MainActor.run {
+                    if let index = self.history.firstIndex(where: { $0.id == item.id }) {
+                        var updatedItem = self.history[index]
+                        updatedItem.ogTitle = title
+                        updatedItem.ogDescription = description
+                        updatedItem.ogImagePath = localImageFilename
+                        updatedItem.isLoadingOGP = false
+                        self.history[index] = updatedItem
+                        self.saveHistory()
+                        print("Updated OGP for: \(url) - Found info: \(title != nil)")
+                    }
+                }
+            } catch {
+                print("OGP Fetch error for \(url): \(error.localizedDescription)")
+                await MainActor.run {
+                    if let index = self.history.firstIndex(where: { $0.id == item.id }) {
+                        self.history[index].isLoadingOGP = false
+                        self.saveHistory()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func downloadOGPImage(url: URL, itemId: UUID) async -> String? {
+        guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return nil }
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5.0 // 5 second timeout for images
+        request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15", forHTTPHeaderField: "User-Agent")
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            if let _ = NSImage(data: data) {
+                let filename = "\(itemId.uuidString)_ogp.png"
+                let fileURL = self.imagesDirectory.appendingPathComponent(filename)
+                try data.write(to: fileURL)
+                return filename
+            }
+        } catch {
+            print("OGP Image download error: \(error.localizedDescription)")
+        }
+        return nil
+    }
+    
+    private func extractMetaContent(html: String, property: String) -> String? {
+        // More robust regex to handle:
+        // 1. property="..." or name="..."
+        // 2. content="..." appearing before or after the property/name attribute
+        // 3. Different quote types and spacing
+        
+        let patterns = [
+            "<meta\\s+[^>]*?(?:property|name)=[\"']\(property)[\"'][^>]*?content=[\"'](.*?)[\"']",
+            "<meta\\s+[^>]*?content=[\"'](.*?)[\"'][^>]*?(?:property|name)=[\"']\(property)[\"']"
+        ]
+        
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
+               let match = regex.firstMatch(in: html, options: [], range: NSRange(location: 0, length: html.utf16.count)) {
+                if let swiftRange = Range(match.range(at: 1), in: html) {
+                    // Decode HTML entities (basic)
+                    return String(html[swiftRange])
+                        .replacingOccurrences(of: "&amp;", with: "&")
+                        .replacingOccurrences(of: "&quot;", with: "\"")
+                        .replacingOccurrences(of: "&lt;", with: "<")
+                        .replacingOccurrences(of: "&gt;", with: ">")
+                }
+            }
+        }
+        return nil
+    }
+
     private func insertItem(_ item: ClipboardItem) {
         if item.type != .image {
             if let existingIndex = history.firstIndex(where: { $0.content == item.content && $0.type == item.type }) {
+                let oldItem = history[existingIndex]
+                if let ogPath = oldItem.ogImagePath {
+                    try? fileManager.removeItem(at: imagesDirectory.appendingPathComponent(ogPath))
+                }
                 history.remove(at: existingIndex)
             }
         }
@@ -120,6 +239,10 @@ class ClipboardManager: ObservableObject {
             let removed = history.removeLast()
             if let path = removed.imagePath {
                 let url = imagesDirectory.appendingPathComponent(path)
+                try? fileManager.removeItem(at: url)
+            }
+            if let ogPath = removed.ogImagePath {
+                let url = imagesDirectory.appendingPathComponent(ogPath)
                 try? fileManager.removeItem(at: url)
             }
         }
@@ -151,6 +274,9 @@ class ClipboardManager: ObservableObject {
             if let path = item.imagePath {
                 try? fileManager.removeItem(at: imagesDirectory.appendingPathComponent(path))
             }
+            if let ogPath = item.ogImagePath {
+                try? fileManager.removeItem(at: imagesDirectory.appendingPathComponent(ogPath))
+            }
         }
         history.removeAll()
         saveHistory()
@@ -168,6 +294,11 @@ class ClipboardManager: ObservableObject {
     
     func image(for item: ClipboardItem) -> NSImage? {
         guard let path = item.imagePath else { return nil }
+        return NSImage(contentsOf: imagesDirectory.appendingPathComponent(path))
+    }
+    
+    func ogImage(for item: ClipboardItem) -> NSImage? {
+        guard let path = item.ogImagePath else { return nil }
         return NSImage(contentsOf: imagesDirectory.appendingPathComponent(path))
     }
 }
